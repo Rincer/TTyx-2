@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Windows">
+      <UniqueIdentifier>{d916b979-61b1-42ca-9d2b-e9f0836e88f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Precompiled">
+      <UniqueIdentifier>{9f142405-21ba-443b-b564-a9ad92f0fb78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application">
+      <UniqueIdentifier>{68be370d-9377-49f3-b6f9-ec0718878479}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Diagnostics">
+      <UniqueIdentifier>{9498ee53-462c-4f48-8fef-686c169400f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GraphicsDevice">
+      <UniqueIdentifier>{7349d9eb-45e3-4ce4-b501-839a614e2c5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GraphicsDevice\Vulkan">
+      <UniqueIdentifier>{881108c3-6e2d-4343-873b-e392d5bc5e07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Memory">
+      <UniqueIdentifier>{c8a75b2d-946b-4683-8a72-b763d8bcffc7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utilities">
+      <UniqueIdentifier>{45fa8a7a-4422-42b6-be1d-3b583a2ab25d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{376a2eb8-da1a-4dc4-be79-46efa609f966}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Shaders">
+      <UniqueIdentifier>{eca41f6b-07e4-47ad-b384-45ef529b2566}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{3c44279c-0ab8-4b5d-b1f7-333340d6148f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering">
+      <UniqueIdentifier>{925f5581-3f82-4e75-b83f-68b7f857441b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Windows\Window.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Precompiled\stdafx.cpp">
+      <Filter>Precompiled</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\TTyx.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Diagnostics\Debugging.cpp">
+      <Filter>Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsDevice\Vulkan\DeviceVK.cpp">
+      <Filter>GraphicsDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\HeapAllocator.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\MemoryManager.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsDevice\Vulkan\ShadersVK.cpp">
+      <Filter>GraphicsDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Scene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsDevice\Vulkan\GraphicsPipelinesVK.cpp">
+      <Filter>GraphicsDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Renderer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsDevice\Vulkan\VertexBuffersVK.cpp">
+      <Filter>GraphicsDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\Hash.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsDevice\DeviceState.cpp">
+      <Filter>GraphicsDevice</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Windows\Window.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Precompiled\stdafx.h">
+      <Filter>Precompiled</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\TTyx.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\Debugging.h">
+      <Filter>Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsDevice\Vulkan\DeviceVK.h">
+      <Filter>GraphicsDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\Allocator.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\HeapAllocator.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\MemoryManager.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Macros.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Functions.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsDevice\Vulkan\ShadersVK.h">
+      <Filter>GraphicsDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Scene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsDevice\Vulkan\GraphicsPipelinesVK.h">
+      <Filter>GraphicsDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Renderer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsDevice\DeviceState.h">
+      <Filter>GraphicsDevice</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsDevice\Vulkan\VertexBuffersVK.h">
+      <Filter>GraphicsDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Hash.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Shaders\Triangle.vert">
+      <Filter>Resources\Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\Triangle.frag">
+      <Filter>Resources\Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>
