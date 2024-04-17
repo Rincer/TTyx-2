@@ -41,36 +41,6 @@ void CMemoryManager::ShutDown()
 }
 
 
-//----------------------------------------------------------------------------------------------
-CMemoryCapper::CMemoryCapper(const unsigned int Capacity) : m_Capacity(Capacity),
-															m_Size(0)
-{
-}
-
-//--------------------------------------------------------------------------------
-void* CMemoryCapper::Alloc(unsigned int Size)
-{
-	//m_Mutex.Acquire();
-	unsigned char* pMemory = NULL;
-	if(m_Size + Size <= m_Capacity)
-	{
-		pMemory = new unsigned char[Size];
-		Assert(pMemory);
-		m_Size += Size;
-	}
-	//m_Mutex.Release();
-	return pMemory;
-}
-
-//--------------------------------------------------------------------------------
-void CMemoryCapper::Free(const void* pMemory, unsigned int Size)
-{
-//	m_Mutex.Acquire();
-	delete[] pMemory;
-	m_Size -= Size;
-//	m_Mutex.Release();	
-}
-
 #if 0	// attempt to override all memory allocation calls has failed due to the fact that sometimes we get calls to free for memory locations outside our range
 		// perhaps try again sometimes in the future.
 

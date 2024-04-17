@@ -2,6 +2,7 @@
 #define _DEVICEVK_H_
 
 #include "VertexBuffersVK.h"
+#include "..\Memory\RingBuffer.h"
 
 class DeviceState;
 class ShadersVK;
@@ -69,6 +70,8 @@ class DeviceVK
         void CreateRenderPass();
         void CreatePipelineLayout();
         uint32_t GetMemoryTypeIndex(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+        void CreateStagingBuffer();
+        void DisposeStagingBuffer();
 
         static const char* scm_EnabledLayers[];
         static const uint32_t scm_NumLayers;
@@ -124,6 +127,11 @@ class DeviceVK
 
         uint32_t m_DeviceFrameCount;
         uint32_t m_CurrFrame;
+
+        static const uint32_t scm_StagingBufferSize = 128 * 1024;
+        RingBuffer m_StagingRingBuffer;
+        VkBuffer m_StagingBuffer;
+        VkDeviceMemory m_StagingBufferMemory;
 };
 
 #endif

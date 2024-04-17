@@ -369,6 +369,35 @@ uint32_t DeviceVK::GetMemoryTypeIndex(uint32_t typeFilter, VkMemoryPropertyFlags
     return -1;
 }
 
+void DeviceVK::CreateStagingBuffer()
+{
+    VkDeviceSize bufferSize = scm_StagingBufferSize;
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = bufferSize;
+    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    VkResult res = vkCreateBuffer(m_LogicalDevice, &bufferInfo, &m_AllocationCallbacks, &m_StagingBuffer);
+    Assert(res == VK_SUCCESS);
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(m_LogicalDevice, m_StagingBuffer, &memRequirements);
+    VkMemoryAllocateInfo memoryAllocInfo{};
+    memoryAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    memoryAllocInfo.allocationSize = memRequirements.size;
+    memoryAllocInfo.memoryTypeIndex = GetMemoryTypeIndex(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    res = vkAllocateMemory(m_LogicalDevice, &memoryAllocInfo, &m_AllocationCallbacks, &m_StagingBufferMemory);
+    Assert(res == VK_SUCCESS);
+    vkBindBufferMemory(m_LogicalDevice, m_StagingBuffer, m_StagingBufferMemory, 0);
+}
+
+void DeviceVK::DisposeStagingBuffer()
+{
+    vkDestroyBuffer(m_LogicalDevice, m_StagingBuffer, &m_AllocationCallbacks);
+    vkFreeMemory(m_LogicalDevice, m_StagingBufferMemory, &m_AllocationCallbacks);
+}
+
 void DeviceVK::SelectPhysicalDevice()
 {
     for (uint32_t i = 0; i < m_PhysicalDeviceCount; i++)
@@ -480,6 +509,7 @@ void DeviceVK::Initialize()
         Assert(res == VK_SUCCESS);
     }
     m_DeviceFrameCount = 0;
+    CreateStagingBuffer();
 }
 
 void DeviceVK::DisposeSwapChain()
@@ -508,6 +538,7 @@ void DeviceVK::Dispose()
     }
     vkDestroyCommandPool(m_LogicalDevice, m_CommandPool, &m_AllocationCallbacks);
     DisposeSwapChain();   
+    DisposeStagingBuffer();
         
     for (uint32_t i = 0; i < m_RenderPassCount; i++)
     {

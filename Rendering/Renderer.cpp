@@ -79,7 +79,7 @@ uint32_t Renderer::CreateRenderElement(const char* vertexShader, const char* fra
     Assert(m_RenderElementsCount < scm_RenderElementsBlock);
     m_pRenderElements[m_RenderElementsCount].m_VertexShader = ShadersVK::Load(m_pGraphicsDevice,  vertexShader, ShaderStageVertex);
     m_pRenderElements[m_RenderElementsCount].m_FragmentShader = ShadersVK::Load(m_pGraphicsDevice, fragmentShader, ShaderStageFragment);
-    m_pRenderElements[m_RenderElementsCount].m_VertexShader = m_pVertexBuffers->CreateVertexBuffer(m_pGraphicsDevice, vertexInputState, size, pVertexData, numVertices);
+    m_pRenderElements[m_RenderElementsCount].m_VertexBuffer = m_pVertexBuffers->CreateVertexBuffer(m_pGraphicsDevice, vertexInputState, size, pVertexData, numVertices);
 
     m_RenderElementsCount++;
     return m_RenderElementsCount - 1;

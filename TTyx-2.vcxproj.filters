@@ -37,6 +37,9 @@
     <Filter Include="Rendering">
       <UniqueIdentifier>{925f5581-3f82-4e75-b83f-68b7f857441b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Testing">
+      <UniqueIdentifier>{8b8dae25-49a7-4c32-9123-b1d9a2327fca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Windows\Window.cpp">
@@ -80,6 +83,12 @@
     </ClCompile>
     <ClCompile Include="GraphicsDevice\DeviceState.cpp">
       <Filter>GraphicsDevice</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\RingBuffer.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Testing\Testing.cpp">
+      <Filter>Testing</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -133,6 +142,12 @@
     </ClInclude>
     <ClInclude Include="Utilities\Hash.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\RingBuffer.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Testing\Testing.h">
+      <Filter>Testing</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -5,6 +5,7 @@
 #include "..\GraphicsDevice\Vulkan\DeviceVK.h"
 #include "..\Scene\Scene.h"
 #include "..\Rendering\Renderer.h"
+#include "..\Testing\Testing.h"
 
 #include "TTyx.h"
 
@@ -53,6 +54,7 @@ void TTyx::Startup(HINSTANCE Instance, int CmdShow)
     CWindow::SetCurrentViewWnd(m_Wnd.GetWnd());
     m_Renderer.Initialize();
     m_Scene.initialize(&m_Renderer);
+ //   Testing::RunTests();
 }
 
 //--------------------------------------------------------------------------------------

@@ -57,18 +57,5 @@ struct StdAllocator
 	}
 };
 
-// Utility class used to track and cap memory allocation for a system
-class CMemoryCapper
-{
-	public:
-		CMemoryCapper(const unsigned int Capacity);
-		void* Alloc(unsigned int Size);
-		void Free(const void* pMemory, unsigned int Size);
-
-	private:
-	//	CLWMutex m_Mutex;
-		unsigned int m_Capacity;
-		unsigned int m_Size;
-};
 
 #endif
