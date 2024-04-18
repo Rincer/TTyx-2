@@ -124,14 +124,25 @@ class DeviceVK
         VkSemaphore m_ImageAvailableSemaphore[scm_Frames];
         VkSemaphore m_RenderFinishedSemaphore[scm_Frames];
         VkFence m_InFlightFence[scm_Frames];
-
         uint32_t m_DeviceFrameCount;
         uint32_t m_CurrFrame;
 
         static const uint32_t scm_StagingBufferSize = 128 * 1024;
+        uint32_t m_StagingBufferOffsets[scm_Frames];
         RingBuffer m_StagingRingBuffer;
         VkBuffer m_StagingBuffer;
         VkDeviceMemory m_StagingBufferMemory;
+        uint32_t m_CurrentStagingOffset;
+
+        struct StagingBufferCopy
+        {
+            VkBufferCopy m_BufferCopy;
+            VkBuffer m_DstBuffer;
+        };
+
+        static const uint32_t kStagingBufferCopiesBlock = 32;
+        StagingBufferCopy* m_pStagingBufferCopies;        
+        uint32_t m_StagingBufferCopyCount;
 };
 
 #endif
