@@ -670,7 +670,7 @@ uint32_t DeviceVK::BeginFrame()
     }    
     uint32_t imageIndex;
     VkResult res = vkAcquireNextImageKHR(m_LogicalDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphore[m_CurrFrame], VK_NULL_HANDLE, &imageIndex);
-    if ((res == VK_ERROR_OUT_OF_DATE_KHR) || (res == VK_SUBOPTIMAL_KHR))
+    if (res == VK_ERROR_OUT_OF_DATE_KHR)
     {                
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_PhysicalDevice, m_Win32Surface, &m_SurfaceCapabilities);
         // Handle minimize
