@@ -4,6 +4,7 @@
 #include "../../Diagnostics/Debugging.h"
 #include "../../Rendering/Renderer.h"
 #include "../DeviceState.h"
+#include "../../Utilities/Hash.h"
 #include "DeviceVK.h"
 
 #include "ShadersVK.h"
@@ -42,10 +43,21 @@ VkShaderModule ShadersVK::GetShaderModule(uint32_t index, ShaderStageType stageT
 
 int ShadersVK::Load(DeviceVK* pDevice, const char* filePath, ShaderStageType stageType)
 {
+    uint64_t hash = Hash::Hash64(reinterpret_cast<const uint8_t*>(filePath), static_cast<uint32_t>(strlen(filePath)));
+
+    // try and find a shader with the same hashed name
+    uint32_t i;
+    for (i = 0; i < m_ShaderCounts[stageType]; i++)
+    {
+        if (m_Shaders[stageType][i].m_Hash == hash)
+            return i;
+    }
+
     Assert(m_ShaderCounts[stageType] < kShaderBlock);
     Shader& shader = m_Shaders[stageType][m_ShaderCounts[stageType]];
     shader.m_FilePath = static_cast<char*>(CMemoryManager::GetAllocator().Alloc(strlen(filePath) + 1));
     strcpy_s(shader.m_FilePath, strlen(filePath) + 1, filePath);
+    shader.m_Hash = hash;
     FILE* f = nullptr;
     fopen_s(&f, filePath, "rb");
     if (f != nullptr)

@@ -2,6 +2,7 @@
 #include "../../Memory/MemoryManager.h"
 #include "../../Diagnostics/Debugging.h"
 #include "../../Windows/Window.h"
+#include "../../Utilities/Macros.h"
 #include "ShadersVK.h"
 
 #include "DeviceVK.h"
@@ -17,6 +18,11 @@ VkBool32 DeviceVK::vkDebugUtilsMessengerCallbackEXT(
         case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
         {
             DebugPrintf("vkDebugError: %s\n", pCallbackData->pMessage);
+            break;
+        }
+        case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+        {
+            DebugPrintf("vkDebugWarning: %s\n", pCallbackData->pMessage);
             break;
         }
         default:
@@ -408,6 +414,35 @@ void DeviceVK::DisposeStagingBuffer()
     CMemoryManager::GetAllocator().Free(m_pStagingBufferCopies);
 }
 
+void DeviceVK::CreateLocalBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, const VkBufferCreateInfo& bufferInfo, uint32_t size, const void* pData)
+{
+    VkResult res = vkCreateBuffer(m_LogicalDevice, &bufferInfo, &m_AllocationCallbacks, &buffer);
+    Assert(res == VK_SUCCESS);
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(m_LogicalDevice, buffer, &memRequirements);
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = GetMemoryTypeIndex(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT); // GPU memory
+    res = vkAllocateMemory(m_LogicalDevice, &allocInfo, &m_AllocationCallbacks, &bufferMemory);
+    Assert(res == VK_SUCCESS);
+    vkBindBufferMemory(m_LogicalDevice, buffer, bufferMemory, 0);
+
+    uint32_t mapOffset = m_StagingRingBuffer.Allocate(size, m_CurrentStagingOffset);
+
+    void* data;
+    vkMapMemory(m_LogicalDevice, m_StagingBufferMemory, mapOffset, bufferInfo.size, 0, &data);
+    memcpy(data, pData, (size_t)bufferInfo.size);
+    vkUnmapMemory(m_LogicalDevice, m_StagingBufferMemory);
+
+    Assert(m_StagingBufferCopyCount < kStagingBufferCopiesBlock);
+    m_pStagingBufferCopies[m_StagingBufferCopyCount].m_DstBuffer = buffer;
+    m_pStagingBufferCopies[m_StagingBufferCopyCount].m_BufferCopy.dstOffset = 0;
+    m_pStagingBufferCopies[m_StagingBufferCopyCount].m_BufferCopy.size = size;
+    m_pStagingBufferCopies[m_StagingBufferCopyCount].m_BufferCopy.srcOffset = mapOffset;
+    m_StagingBufferCopyCount++;
+}
+
 void DeviceVK::SelectPhysicalDevice()
 {
     for (uint32_t i = 0; i < m_PhysicalDeviceCount; i++)
@@ -776,6 +811,13 @@ void DeviceVK::DrawVertexBuffer(VkBuffer buffer, VkDeviceSize offset, uint32_t n
     vkCmdDraw((m_CommandBuffer[m_CurrFrame]), numVerts, 1, 0, 0);
 }
 
+void DeviceVK::DrawIndexedVertexBuffer(VkBuffer vertexBuffer, VkDeviceSize vertexOffset, VkBuffer indexBuffer, VkDeviceSize indexOffset, uint32_t numIndices)
+{
+    vkCmdBindVertexBuffers(m_CommandBuffer[m_CurrFrame], 0, 1, &vertexBuffer, &vertexOffset);
+    vkCmdBindIndexBuffer(m_CommandBuffer[m_CurrFrame], indexBuffer, indexOffset, VK_INDEX_TYPE_UINT16);
+    vkCmdDrawIndexed(m_CommandBuffer[m_CurrFrame], numIndices, 1, 0, 0, 0);
+}
+
 void DeviceVK::WaitTillIdle()
 {
     vkDeviceWaitIdle(m_LogicalDevice);
@@ -852,43 +894,37 @@ void DeviceVK::DestroyShaderModule(VkShaderModule shaderModule)
 
 void DeviceVK::CreateVertexBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, uint32_t size, const void* pData)
 {
+    size = ALIGN(size, 4);  // ringbuffer allocations should be 4 byte aligned for this
     // create the buffer and its memory 
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = size;
     bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-   
-    VkResult res = vkCreateBuffer(m_LogicalDevice, &bufferInfo, &m_AllocationCallbacks, &buffer);
-    Assert(res == VK_SUCCESS);
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(m_LogicalDevice, buffer, &memRequirements);
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = GetMemoryTypeIndex(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT); // GPU memory
-    res = vkAllocateMemory(m_LogicalDevice, &allocInfo, &m_AllocationCallbacks, &bufferMemory);
-    Assert(res == VK_SUCCESS);
-    vkBindBufferMemory(m_LogicalDevice, buffer, bufferMemory, 0);     
-
-    uint32_t mapOffset = m_StagingRingBuffer.Allocate(size, m_CurrentStagingOffset);
-
-    void* data;
-    vkMapMemory(m_LogicalDevice, m_StagingBufferMemory, mapOffset, bufferInfo.size, 0, &data);
-    memcpy(data, pData, (size_t)bufferInfo.size);
-    vkUnmapMemory(m_LogicalDevice, m_StagingBufferMemory);
-
-    Assert(m_StagingBufferCopyCount < kStagingBufferCopiesBlock);
-    m_pStagingBufferCopies[m_StagingBufferCopyCount].m_DstBuffer = buffer;
-    m_pStagingBufferCopies[m_StagingBufferCopyCount].m_BufferCopy.dstOffset = 0;
-    m_pStagingBufferCopies[m_StagingBufferCopyCount].m_BufferCopy.size = size;
-    m_pStagingBufferCopies[m_StagingBufferCopyCount].m_BufferCopy.srcOffset = mapOffset;
-    m_StagingBufferCopyCount++;
+    CreateLocalBuffer(buffer, bufferMemory, bufferInfo, size, pData);   
 }
 
 void DeviceVK::DestroyVertexBuffer(VertexBuffersVK::VertexBuffer* pBuffer)
 {
     vkDestroyBuffer(m_LogicalDevice, pBuffer->m_VertexBuffer, &m_AllocationCallbacks);
+    vkFreeMemory(m_LogicalDevice, pBuffer->m_BufferMemory, &m_AllocationCallbacks);
+}
+
+void DeviceVK::CreateIndexBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, uint32_t size, const void* pData)
+{
+    size = ALIGN(size, 4);  // ringbuffer allocations should be 4 byte aligned for this
+    // create the buffer and its memory 
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    CreateLocalBuffer(buffer, bufferMemory, bufferInfo, size, pData);
+}
+
+void DeviceVK::DestroyIndexBuffer(IndexBuffersVK::IndexBuffer* pBuffer)
+{
+    vkDestroyBuffer(m_LogicalDevice, pBuffer->m_IndexBuffer, &m_AllocationCallbacks);
     vkFreeMemory(m_LogicalDevice, pBuffer->m_BufferMemory, &m_AllocationCallbacks);
 }
 

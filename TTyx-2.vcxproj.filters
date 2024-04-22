@@ -90,6 +90,9 @@
     <ClCompile Include="Testing\Testing.cpp">
       <Filter>Testing</Filter>
     </ClCompile>
+    <ClCompile Include="GraphicsDevice\Vulkan\IndexBuffersVK.cpp">
+      <Filter>GraphicsDevice\Vulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Windows\Window.h">
@@ -148,6 +151,9 @@
     </ClInclude>
     <ClInclude Include="Testing\Testing.h">
       <Filter>Testing</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsDevice\Vulkan\IndexBuffersVK.h">
+      <Filter>GraphicsDevice\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

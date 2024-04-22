@@ -2,6 +2,7 @@
 #define _DEVICEVK_H_
 
 #include "VertexBuffersVK.h"
+#include "IndexBuffersVK.h"
 #include "..\Memory\RingBuffer.h"
 
 class DeviceState;
@@ -17,6 +18,7 @@ class DeviceVK
         void EndFrame(uint32_t imageIndex);
         void BindPipeline(VkPipeline pipeline);
         void DrawVertexBuffer(VkBuffer buffer, VkDeviceSize offset, uint32_t numVerts);
+        void DrawIndexedVertexBuffer(VkBuffer vertexBuffer, VkDeviceSize vertexOffset, VkBuffer indexBuffer, VkDeviceSize indexOffset, uint32_t numIndices);
         void WaitTillIdle();
 
         void SetVertexInput();
@@ -34,6 +36,8 @@ class DeviceVK
         void DestroyShaderModule(VkShaderModule shaderModule);
         void CreateVertexBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, uint32_t size, const void* pData);
         void DestroyVertexBuffer(VertexBuffersVK::VertexBuffer* pBuffer);
+        void CreateIndexBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, uint32_t size, const void* pData);
+        void DestroyIndexBuffer(IndexBuffersVK::IndexBuffer* pBuffer);
         void SetDeviceState(const DeviceState* pDeviceState);
         
         static PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
@@ -72,6 +76,7 @@ class DeviceVK
         uint32_t GetMemoryTypeIndex(uint32_t typeFilter, VkMemoryPropertyFlags properties);
         void CreateStagingBuffer();
         void DisposeStagingBuffer();
+        void CreateLocalBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, const VkBufferCreateInfo& bufferInfo, uint32_t size, const void* pData);
 
         static const char* scm_EnabledLayers[];
         static const uint32_t scm_NumLayers;

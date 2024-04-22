@@ -14,6 +14,7 @@ class ShadersVK
             char* m_FilePath;
             char* m_Code;
             uint32_t m_CodeLength;
+            uint64_t m_Hash;
             VkShaderModule m_ShaderModule;
         };
 

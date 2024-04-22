@@ -143,6 +143,7 @@
     <ClCompile Include="GraphicsDevice\DeviceState.cpp" />
     <ClCompile Include="GraphicsDevice\Vulkan\DeviceVK.cpp" />
     <ClCompile Include="GraphicsDevice\Vulkan\GraphicsPipelinesVK.cpp" />
+    <ClCompile Include="GraphicsDevice\Vulkan\IndexBuffersVK.cpp" />
     <ClCompile Include="GraphicsDevice\Vulkan\ShadersVK.cpp" />
     <ClCompile Include="GraphicsDevice\Vulkan\VertexBuffersVK.cpp" />
     <ClCompile Include="Memory\HeapAllocator.cpp" />
@@ -164,6 +165,7 @@
     <ClInclude Include="GraphicsDevice\DeviceState.h" />
     <ClInclude Include="GraphicsDevice\Vulkan\DeviceVK.h" />
     <ClInclude Include="GraphicsDevice\Vulkan\GraphicsPipelinesVK.h" />
+    <ClInclude Include="GraphicsDevice\Vulkan\IndexBuffersVK.h" />
     <ClInclude Include="GraphicsDevice\Vulkan\ShadersVK.h" />
     <ClInclude Include="GraphicsDevice\Vulkan\VertexBuffersVK.h" />
     <ClInclude Include="Memory\Allocator.h" />

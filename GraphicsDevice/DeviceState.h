@@ -42,10 +42,8 @@ class DeviceState
         VkCullModeFlagBits GetCullMode() const { return m_StaticState.m_CullMode; }
         VkFrontFace GetFrontFace() const { return m_StaticState.m_FrontFace; }
         uint32_t GetColorBlend() const { return m_StaticState.m_ColorBlend; }
-        uint32_t GetShader(ShaderStageType shaderType) const { return m_StaticState.m_Shaders[shaderType]; }
-        uint32_t GetVertexBuffer() const { return m_StaticState.m_VertexBuffer; }
+        uint32_t GetShader(ShaderStageType shaderType) const { return m_StaticState.m_Shaders[shaderType]; }       
         uint64_t GetHash() const { return m_Hash; }
-
 
     private:
         DynamicState    m_DynamicState;

@@ -3,6 +3,7 @@
 
 #include "..\GraphicsDevice\DeviceState.h"
 #include "..\GraphicsDevice\Vulkan\VertexBuffersVK.h"
+#include "..\GraphicsDevice\Vulkan\IndexBuffersVK.h"
 #include "..\Memory\MemoryManager.h"
 #include <unordered_map>
 
@@ -15,12 +16,15 @@ class Renderer
         {
             uint32_t m_VertexShader;
             uint32_t m_FragmentShader;
-            uint32_t m_VertexBuffer;            
+            uint32_t m_VertexBuffer;
+            uint32_t m_IndexBuffer;
         };
         void Initialize();
         void Dispose();
         void Execute();                
-        uint32_t CreateRenderElement(const char* vertexShader, const char* fragmentShader, const VertexBuffersVK::VertexInputState& vertexInputState, uint32_t size, const void* pVertexData, uint32_t numVertices);
+        uint32_t CreateRenderElement(const char* vertexShader, const char* fragmentShader, const VertexBuffersVK::VertexInputState& vertexInputState, uint32_t size, const void* pData, uint32_t numVertices);
+        uint32_t CreateIndexedRenderElement(const char* vertexShader, const char* fragmentShader, const VertexBuffersVK::VertexInputState& vertexInputState, uint32_t vertexDataSize, const void* pVertexData, uint32_t numVertices,
+            uint32_t indexDataSize, const void* pIndexData, uint32_t numIndices);
         void DrawRenderElement(uint32_t renderElement);
 
     private:        
@@ -28,7 +32,8 @@ class Renderer
         void DrawRenderElements();
         DeviceState m_DeviceState;
         DeviceVK* m_pGraphicsDevice;
-        VertexBuffersVK* m_pVertexBuffers;        
+        VertexBuffersVK* m_pVertexBuffers;
+        IndexBuffersVK* m_pIndexBuffers;
         std::unordered_map<uint64_t, VkPipeline, std::hash<uint64_t>, std::equal_to<uint64_t>, StdAllocator<std::pair<uint64_t, VkPipeline>>> m_PipelineMap;
 
         static const uint32_t scm_RenderElementsBlock = 32;

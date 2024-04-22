@@ -14,6 +14,8 @@ void Renderer::Initialize()
     m_pGraphicsDevice->Initialize();
     m_pVertexBuffers = static_cast<VertexBuffersVK*>(CMemoryManager::GetAllocator().Alloc(sizeof(VertexBuffersVK)));
     m_pVertexBuffers->Initialize();
+    m_pIndexBuffers = static_cast<IndexBuffersVK*>(CMemoryManager::GetAllocator().Alloc(sizeof(IndexBuffersVK)));
+    m_pIndexBuffers->Initialize();
     m_RenderElementsCount = 0;
     m_pRenderElements = static_cast<RenderElement*>(CMemoryManager::GetAllocator().Alloc(scm_RenderElementsBlock * sizeof(RenderElement)));
     m_pRenderElementIndices = static_cast<uint32_t*>(CMemoryManager::GetAllocator().Alloc(scm_QueuedElementsBlock * sizeof(uint32_t)));
@@ -24,6 +26,7 @@ void Renderer::Dispose()
 {
     m_pGraphicsDevice->WaitTillIdle();
     m_pVertexBuffers->Dispose(m_pGraphicsDevice);
+    m_pIndexBuffers->Dispose(m_pGraphicsDevice);
     m_pGraphicsDevice->Dispose();
     CMemoryManager::GetAllocator().Free(m_pGraphicsDevice);
     CMemoryManager::GetAllocator().Free(m_pVertexBuffers);
@@ -43,12 +46,13 @@ void Renderer::DrawRenderElements()
         m_DeviceState.SetShader(renderElement.m_VertexShader, ShaderStageVertex);
         m_DeviceState.SetShader(renderElement.m_FragmentShader, ShaderStageFragment);
         m_DeviceState.SetVertexBuffer(renderElement.m_VertexBuffer);
+        // Index buffers do not affect pipeline state
         m_DeviceState.Update();
         std::unordered_map<uint64_t,VkPipeline>::const_iterator it = m_PipelineMap.find(m_DeviceState.GetHash());
         VkPipeline vkPipeline{};
         if (it == m_PipelineMap.end())
         {
-            m_pGraphicsDevice->CreateGraphicsPipeline(&m_DeviceState, &vkPipeline, m_pVertexBuffers->GetVertexInputCreateInfo(m_DeviceState.GetVertexBuffer()));
+            m_pGraphicsDevice->CreateGraphicsPipeline(&m_DeviceState, &vkPipeline, m_pVertexBuffers->GetVertexInputCreateInfo(renderElement.m_VertexBuffer));
             m_PipelineMap.insert(std::make_pair(m_DeviceState.GetHash(), vkPipeline));
         }
         else
@@ -58,8 +62,18 @@ void Renderer::DrawRenderElements()
         m_pGraphicsDevice->BindPipeline(vkPipeline);
         VkBuffer buffer;
         uint32_t numVerts;
-        m_pVertexBuffers->GetVertexBuffer(buffer, numVerts, m_DeviceState.GetVertexBuffer());
-        m_pGraphicsDevice->DrawVertexBuffer(buffer, 0, numVerts);
+        m_pVertexBuffers->GetVertexBuffer(buffer, numVerts, renderElement.m_VertexBuffer);
+        if (renderElement.m_IndexBuffer == -1)
+        {
+            m_pGraphicsDevice->DrawVertexBuffer(buffer, 0, numVerts);
+        }
+        else
+        {
+            VkBuffer indexBuffer;
+            uint32_t numIndices;
+            m_pIndexBuffers->GetIndexBuffer(indexBuffer, numIndices, renderElement.m_IndexBuffer);
+            m_pGraphicsDevice->DrawIndexedVertexBuffer(buffer, 0, indexBuffer, 0, numIndices);
+        }
     }
 }
 
@@ -74,15 +88,29 @@ void Renderer::Execute()
     m_RenderElementsIndexCount = 0;
 }
 
-uint32_t Renderer::CreateRenderElement(const char* vertexShader, const char* fragmentShader, const VertexBuffersVK::VertexInputState& vertexInputState, uint32_t size, const void* pVertexData, uint32_t numVertices)
+uint32_t Renderer::CreateRenderElement(const char* vertexShader, const char* fragmentShader, const VertexBuffersVK::VertexInputState& vertexInputState, uint32_t size, const void* pData, uint32_t numVertices)
 {
     Assert(m_RenderElementsCount < scm_RenderElementsBlock);
     m_pRenderElements[m_RenderElementsCount].m_VertexShader = ShadersVK::Load(m_pGraphicsDevice,  vertexShader, ShaderStageVertex);
     m_pRenderElements[m_RenderElementsCount].m_FragmentShader = ShadersVK::Load(m_pGraphicsDevice, fragmentShader, ShaderStageFragment);
-    m_pRenderElements[m_RenderElementsCount].m_VertexBuffer = m_pVertexBuffers->CreateVertexBuffer(m_pGraphicsDevice, vertexInputState, size, pVertexData, numVertices);
+    m_pRenderElements[m_RenderElementsCount].m_VertexBuffer = m_pVertexBuffers->CreateVertexBuffer(m_pGraphicsDevice, vertexInputState, size, pData, numVertices);
+    m_pRenderElements[m_RenderElementsCount].m_IndexBuffer = -1;
 
     m_RenderElementsCount++;
     return m_RenderElementsCount - 1;
+}
+
+uint32_t Renderer::CreateIndexedRenderElement(const char* vertexShader, const char* fragmentShader, const VertexBuffersVK::VertexInputState& vertexInputState, uint32_t vertexDataSize, const void* pVertexData, uint32_t numVertices,
+    uint32_t indexDataSize, const void* pIndexData, uint32_t numIndices)
+{
+    Assert(m_RenderElementsCount < scm_RenderElementsBlock);
+    m_pRenderElements[m_RenderElementsCount].m_VertexShader = ShadersVK::Load(m_pGraphicsDevice, vertexShader, ShaderStageVertex);
+    m_pRenderElements[m_RenderElementsCount].m_FragmentShader = ShadersVK::Load(m_pGraphicsDevice, fragmentShader, ShaderStageFragment);
+    m_pRenderElements[m_RenderElementsCount].m_VertexBuffer = m_pVertexBuffers->CreateVertexBuffer(m_pGraphicsDevice, vertexInputState, vertexDataSize, pVertexData, numVertices);
+    m_pRenderElements[m_RenderElementsCount].m_IndexBuffer = m_pIndexBuffers->CreateIndexBuffer(m_pGraphicsDevice, indexDataSize, pIndexData, numIndices);;
+    m_RenderElementsCount++;
+    return m_RenderElementsCount - 1;
+
 }
 
 void Renderer::DrawRenderElement(uint32_t renderElement)
