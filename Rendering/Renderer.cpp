@@ -30,6 +30,7 @@ void Renderer::Dispose()
     m_pGraphicsDevice->Dispose();
     CMemoryManager::GetAllocator().Free(m_pGraphicsDevice);
     CMemoryManager::GetAllocator().Free(m_pVertexBuffers);
+    CMemoryManager::GetAllocator().Free(m_pIndexBuffers);
     CMemoryManager::GetAllocator().Free(m_pRenderElements);
     CMemoryManager::GetAllocator().Free(m_pRenderElementIndices);
 }

@@ -24,7 +24,8 @@
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
 #include <new>
-#include <DirectXMath.h>
+//#include <DirectXMath.h>
+#include <glm/glm.hpp>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_win32.h>
 
