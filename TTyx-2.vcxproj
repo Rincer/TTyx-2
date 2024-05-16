@@ -154,6 +154,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Rendering\Renderer.cpp" />
+    <ClCompile Include="Rendering\ResourceContext.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
     <ClCompile Include="Testing\Testing.cpp" />
     <ClCompile Include="Utilities\Hash.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="Memory\RingBuffer.h" />
     <ClInclude Include="Precompiled\stdafx.h" />
     <ClInclude Include="Rendering\Renderer.h" />
+    <ClInclude Include="Rendering\ResourceContext.h" />
     <ClInclude Include="Scene\Scene.h" />
     <ClInclude Include="Testing\Testing.h" />
     <ClInclude Include="Utilities\Functions.h" />

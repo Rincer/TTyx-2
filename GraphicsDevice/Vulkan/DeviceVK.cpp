@@ -3,6 +3,7 @@
 #include "../../Diagnostics/Debugging.h"
 #include "../../Windows/Window.h"
 #include "../../Utilities/Macros.h"
+#include "../../Rendering/ResourceContext.h"
 #include "ShadersVK.h"
 
 #include "DeviceVK.h"
@@ -518,10 +519,7 @@ void DeviceVK::Initialize()
     CreateRenderPass();
     CreateSwapChain(m_Win32Surface, VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
     vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &m_MemProperties);
-
-    m_pShaders = static_cast<ShadersVK*>(CMemoryManager::GetAllocator().Alloc(sizeof(ShadersVK)));
-    m_pShaders->Initialize();
-       
+          
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
@@ -572,9 +570,7 @@ void DeviceVK::DisposeSwapChain()
 }
 
 void DeviceVK::Dispose()
-{
-    m_pShaders->Dispose(this);
-    CMemoryManager::GetAllocator().Free(m_pShaders);
+{    
     for (uint32_t i = 0; i < scm_Frames; i++)
     {
         vkDestroySemaphore(m_LogicalDevice, m_ImageAvailableSemaphore[i], &m_AllocationCallbacks);
@@ -609,16 +605,16 @@ void DeviceVK::Dispose()
     CMemoryManager::GetAllocator().Free(m_pRenderPasses);   
 }
 
-void DeviceVK::CreateGraphicsPipeline(const DeviceState* pDeviceState, VkPipeline* pPipeline, const VkPipelineVertexInputStateCreateInfo& vertexInputStateCreateInfo)
+void DeviceVK::CreateGraphicsPipeline(const DeviceState* pDeviceState, VkPipeline* pPipeline, const ResourceContext* pResourceContext)
 {
     VkPipelineShaderStageCreateInfo shaderStages[] {{}, {}};
     shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
-    shaderStages[0].module = m_pShaders->GetShaderModule(pDeviceState->GetShader(ShaderStageVertex), ShaderStageVertex);
+    shaderStages[0].module = pResourceContext->m_Shaders.GetShaderModule(pDeviceState->GetShader(ShaderStageVertex), ShaderStageVertex);
     shaderStages[0].pName = "main";
     shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    shaderStages[1].module = m_pShaders->GetShaderModule(pDeviceState->GetShader(ShaderStageFragment), ShaderStageFragment);
+    shaderStages[1].module = pResourceContext->m_Shaders.GetShaderModule(pDeviceState->GetShader(ShaderStageFragment), ShaderStageFragment);
     shaderStages[1].pName = "main";
 
     VkDynamicState dynamicStates[] =
@@ -678,7 +674,7 @@ void DeviceVK::CreateGraphicsPipeline(const DeviceState* pDeviceState, VkPipelin
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineInfo.stageCount = 2;
     pipelineInfo.pStages = shaderStages;
-    pipelineInfo.pVertexInputState = &vertexInputStateCreateInfo;
+    pipelineInfo.pVertexInputState = &pResourceContext->m_VertexBuffers.GetVertexInputCreateInfo(pDeviceState->GetVertexBuffer());
     pipelineInfo.pInputAssemblyState = &inputAssembly;
     pipelineInfo.pViewportState = &viewportState;
     pipelineInfo.pRasterizationState = &rasterizer;

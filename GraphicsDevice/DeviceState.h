@@ -44,6 +44,7 @@ class DeviceState
         uint32_t GetColorBlend() const { return m_StaticState.m_ColorBlend; }
         uint32_t GetShader(ShaderStageType shaderType) const { return m_StaticState.m_Shaders[shaderType]; }       
         uint64_t GetHash() const { return m_Hash; }
+        uint32_t GetVertexBuffer() const { return m_StaticState.m_VertexBuffer; }
 
     private:
         DynamicState    m_DynamicState;

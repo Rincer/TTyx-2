@@ -31,7 +31,7 @@ class VertexBuffersVK
         void Initialize();
         void Dispose(DeviceVK* pGraphicsDevice);
         uint32_t CreateVertexBuffer(DeviceVK* pGraphicsDevice, const VertexInputState& vertexInputState, uint32_t size, const void* pData, uint32_t numVertices);
-        const VkPipelineVertexInputStateCreateInfo& GetVertexInputCreateInfo(uint32_t vertexBufferIndex);
+        const VkPipelineVertexInputStateCreateInfo& GetVertexInputCreateInfo(uint32_t vertexBufferIndex) const;
         void GetVertexBuffer(VkBuffer& buffer, uint32_t& numVertices, uint32_t vertexBufferIndex);
 
         struct VertexBuffer

@@ -5,6 +5,7 @@
 #include "..\GraphicsDevice\Vulkan\VertexBuffersVK.h"
 #include "..\GraphicsDevice\Vulkan\IndexBuffersVK.h"
 #include "..\Memory\MemoryManager.h"
+#include "ResourceContext.h"
 #include <unordered_map>
 
 class DeviceVK;
@@ -32,8 +33,7 @@ class Renderer
         void DrawRenderElements();
         DeviceState m_DeviceState;
         DeviceVK* m_pGraphicsDevice;
-        VertexBuffersVK* m_pVertexBuffers;
-        IndexBuffersVK* m_pIndexBuffers;
+        ResourceContext m_ResourceContext;
         std::unordered_map<uint64_t, VkPipeline, std::hash<uint64_t>, std::equal_to<uint64_t>, StdAllocator<std::pair<uint64_t, VkPipeline>>> m_PipelineMap;
 
         static const uint32_t scm_RenderElementsBlock = 32;

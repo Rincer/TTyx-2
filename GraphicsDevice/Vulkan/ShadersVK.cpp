@@ -9,9 +9,6 @@
 
 #include "ShadersVK.h"
 
-ShadersVK::Shader* ShadersVK::m_Shaders[ShaderStageCount];
-uint32_t    ShadersVK::m_ShaderCounts[ShaderStageCount];
-
 void ShadersVK::Initialize()
 {
     for (uint32_t i = 0; i < ShaderStageCount; i++)
@@ -36,7 +33,7 @@ void ShadersVK::Dispose(DeviceVK* pDevice)
     }
 }
 
-VkShaderModule ShadersVK::GetShaderModule(uint32_t index, ShaderStageType stageType)
+VkShaderModule ShadersVK::GetShaderModule(uint32_t index, ShaderStageType stageType) const
 {
     return m_Shaders[stageType][index].m_ShaderModule;
 }

@@ -38,7 +38,7 @@ uint32_t VertexBuffersVK::CreateVertexBuffer(DeviceVK* pGraphicsDevice, const Ve
     return m_VertexBuffersCount - 1;
 }
 
-const VkPipelineVertexInputStateCreateInfo& VertexBuffersVK::GetVertexInputCreateInfo(uint32_t vertexBufferIndex)
+const VkPipelineVertexInputStateCreateInfo& VertexBuffersVK::GetVertexInputCreateInfo(uint32_t vertexBufferIndex) const
 {
     return m_pVertexBuffers[vertexBufferIndex].m_InputState.GetVertexInput();
 }

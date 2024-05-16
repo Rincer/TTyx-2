@@ -7,13 +7,14 @@
 
 class DeviceState;
 class ShadersVK;
+class ResourceContext;
 
 class DeviceVK
 {
     public:
         void Initialize();
         void Dispose();
-        void CreateGraphicsPipeline(const DeviceState* pDeviceState, VkPipeline* pPipeline, const VkPipelineVertexInputStateCreateInfo& vertexInputStateCreateInfo);
+        void CreateGraphicsPipeline(const DeviceState* pDeviceState, VkPipeline* pPipeline, const ResourceContext* pResourceContext);
         uint32_t BeginFrame();
         void EndFrame(uint32_t imageIndex);
         void BindPipeline(VkPipeline pipeline);
@@ -116,9 +117,7 @@ class DeviceVK
         VkImage* m_pSwapChainImages;
         VkImageView* m_pSwapChainImageViews;     
         VkFramebuffer* m_pSwapChainFrameBuffers;
-
-        ShadersVK* m_pShaders;
-        
+               
         static const uint32_t kRenderPassBlock = 32;
         VkRenderPass* m_pRenderPasses;
         uint32_t m_RenderPassCount;

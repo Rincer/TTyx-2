@@ -20,14 +20,14 @@ class ShadersVK
 
         void Initialize();
         void Dispose(DeviceVK* device);
-        VkShaderModule GetShaderModule(uint32_t index, ShaderStageType stageType);
-        static int Load(DeviceVK* device, const char* filePath, ShaderStageType stageType);
+        VkShaderModule GetShaderModule(uint32_t index, ShaderStageType stageType) const;
+        int Load(DeviceVK* device, const char* filePath, ShaderStageType stageType);
 
     private:
         
         static const uint32_t kShaderBlock = 32;
-        static Shader*     m_Shaders[ShaderStageCount];
-        static uint32_t    m_ShaderCounts[ShaderStageCount];
+        Shader*     m_Shaders[ShaderStageCount];
+        uint32_t    m_ShaderCounts[ShaderStageCount];
 };
 
 #endif

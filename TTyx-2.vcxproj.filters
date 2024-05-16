@@ -93,6 +93,9 @@
     <ClCompile Include="GraphicsDevice\Vulkan\IndexBuffersVK.cpp">
       <Filter>GraphicsDevice\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\ResourceContext.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Windows\Window.h">
@@ -154,6 +157,9 @@
     </ClInclude>
     <ClInclude Include="GraphicsDevice\Vulkan\IndexBuffersVK.h">
       <Filter>GraphicsDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ResourceContext.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
