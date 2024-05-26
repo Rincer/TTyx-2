@@ -18,8 +18,7 @@ class DeviceVK
         uint32_t BeginFrame();
         void EndFrame(uint32_t imageIndex);
         void BindPipeline(VkPipeline pipeline);
-        void DrawVertexBuffer(VkBuffer buffer, VkDeviceSize offset, uint32_t numVerts);
-        void DrawIndexedVertexBuffer(VkBuffer vertexBuffer, VkDeviceSize vertexOffset, VkBuffer indexBuffer, VkDeviceSize indexOffset, uint32_t numIndices);
+        void DrawVertexBuffer(const ResourceContext* pResourceContext, uint32_t vertexBuffer, uint32_t indexBuffer);        
         void WaitTillIdle();
 
         void SetVertexInput();
@@ -78,6 +77,8 @@ class DeviceVK
         void CreateStagingBuffer();
         void DisposeStagingBuffer();
         void CreateLocalBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, const VkBufferCreateInfo& bufferInfo, uint32_t size, const void* pData);
+        void DrawVertexBuffer(VkBuffer buffer, VkDeviceSize offset, uint32_t numVerts);
+        void DrawIndexedVertexBuffer(VkBuffer vertexBuffer, VkDeviceSize vertexOffset, VkBuffer indexBuffer, VkDeviceSize indexOffset, uint32_t numIndices);
 
         static const char* scm_EnabledLayers[];
         static const uint32_t scm_NumLayers;

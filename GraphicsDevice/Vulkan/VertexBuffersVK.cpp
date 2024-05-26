@@ -43,7 +43,7 @@ const VkPipelineVertexInputStateCreateInfo& VertexBuffersVK::GetVertexInputCreat
     return m_pVertexBuffers[vertexBufferIndex].m_InputState.GetVertexInput();
 }
 
-void VertexBuffersVK::GetVertexBuffer(VkBuffer& buffer, uint32_t& numVertices, uint32_t vertexBufferIndex)
+void VertexBuffersVK::GetVertexBuffer(VkBuffer& buffer, uint32_t& numVertices, uint32_t vertexBufferIndex) const
 {
     buffer = m_pVertexBuffers[vertexBufferIndex].m_VertexBuffer;
     numVertices = m_pVertexBuffers[vertexBufferIndex].m_InputState.m_NumVerts;

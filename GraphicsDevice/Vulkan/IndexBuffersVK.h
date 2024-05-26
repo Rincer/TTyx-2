@@ -10,7 +10,7 @@ class IndexBuffersVK
         void Initialize();
         void Dispose(DeviceVK* pGraphicsDevice);
         uint32_t CreateIndexBuffer(DeviceVK* pGraphicsDevice, uint32_t size, const void* pData, uint32_t numIndices);
-        void GetIndexBuffer(VkBuffer& buffer, uint32_t& numIndices, uint32_t indexBufferIndex);
+        void GetIndexBuffer(VkBuffer& buffer, uint32_t& numIndices, uint32_t indexBufferIndex) const;
 
         struct IndexBuffer
         {

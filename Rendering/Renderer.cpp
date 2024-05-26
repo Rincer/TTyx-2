@@ -55,20 +55,7 @@ void Renderer::DrawRenderElements()
             vkPipeline = it->second;
         }
         m_pGraphicsDevice->BindPipeline(vkPipeline);
-        VkBuffer buffer;
-        uint32_t numVerts;
-        m_ResourceContext.m_VertexBuffers.GetVertexBuffer(buffer, numVerts, renderElement.m_VertexBuffer);
-        if (renderElement.m_IndexBuffer == -1)
-        {
-            m_pGraphicsDevice->DrawVertexBuffer(buffer, 0, numVerts);
-        }
-        else
-        {
-            VkBuffer indexBuffer;
-            uint32_t numIndices;
-            m_ResourceContext.m_IndexBuffers.GetIndexBuffer(indexBuffer, numIndices, renderElement.m_IndexBuffer);
-            m_pGraphicsDevice->DrawIndexedVertexBuffer(buffer, 0, indexBuffer, 0, numIndices);
-        }
+        m_pGraphicsDevice->DrawVertexBuffer(&m_ResourceContext, renderElement.m_VertexBuffer, renderElement.m_IndexBuffer);
     }
 }
 

@@ -29,7 +29,7 @@ uint32_t IndexBuffersVK::CreateIndexBuffer(DeviceVK* pGraphicsDevice, uint32_t s
     return m_IndexBuffersCount - 1;
 }
 
-void IndexBuffersVK::GetIndexBuffer(VkBuffer& buffer, uint32_t& numIndices, uint32_t indexBufferIndex)
+void IndexBuffersVK::GetIndexBuffer(VkBuffer& buffer, uint32_t& numIndices, uint32_t indexBufferIndex) const
 {
     buffer = m_pIndexBuffers[indexBufferIndex].m_IndexBuffer;
     numIndices = m_pIndexBuffers[indexBufferIndex].m_NumIndices;

@@ -814,6 +814,24 @@ void DeviceVK::DrawIndexedVertexBuffer(VkBuffer vertexBuffer, VkDeviceSize verte
     vkCmdDrawIndexed(m_CommandBuffer[m_CurrFrame], numIndices, 1, 0, 0, 0);
 }
 
+void DeviceVK::DrawVertexBuffer(const ResourceContext* pResourceContext, uint32_t vertexBuffer, uint32_t indexBuffer)
+{
+    VkBuffer buffer;
+    uint32_t numVerts;
+    pResourceContext->m_VertexBuffers.GetVertexBuffer(buffer, numVerts, vertexBuffer);
+    if (indexBuffer == -1)
+    {
+        DrawVertexBuffer(buffer, 0, numVerts);
+    }
+    else
+    {
+        VkBuffer iBuffer;
+        uint32_t numIndices;
+        pResourceContext->m_IndexBuffers.GetIndexBuffer(iBuffer, numIndices, indexBuffer);
+        DrawIndexedVertexBuffer(buffer, 0, iBuffer, 0, numIndices);
+    }
+}
+
 void DeviceVK::WaitTillIdle()
 {
     vkDeviceWaitIdle(m_LogicalDevice);
