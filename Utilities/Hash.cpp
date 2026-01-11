@@ -67,3 +67,8 @@ uint64_t Hash::Hash64(const uint8_t* pData, uint32_t length)
 {	
 	return hash(pData, length, 0ULL);
 }
+
+uint64_t Hash::Hash64(const char* pString)
+{
+	return Hash64(reinterpret_cast<const uint8_t*>(pString), static_cast<uint32_t>(strlen(pString)));
+}

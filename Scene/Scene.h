@@ -12,6 +12,7 @@ class Scene
     private:
         uint32_t m_RenderElement;
         uint32_t m_RenderElement2;
+        uint32_t m_RenderElement3;
 };
 
 #endif

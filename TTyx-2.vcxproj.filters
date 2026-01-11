@@ -40,6 +40,15 @@
     <Filter Include="Testing">
       <UniqueIdentifier>{8b8dae25-49a7-4c32-9123-b1d9a2327fca}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ShaderUtils">
+      <UniqueIdentifier>{01a36bae-fb93-400e-a555-30b83786dfa0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ShaderUtils\SPIRV-reflect">
+      <UniqueIdentifier>{1965ca25-e71b-4351-8b6d-8cfa33c53c25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System">
+      <UniqueIdentifier>{86c167ef-0361-4b2b-9b69-0b2206c2ab43}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Windows\Window.cpp">
@@ -95,6 +104,18 @@
     </ClCompile>
     <ClCompile Include="Rendering\ResourceContext.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderUtils\SPIRV-reflect\spirv_reflect.cpp">
+      <Filter>ShaderUtils\SPIRV-reflect</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsDevice\Vulkan\UBOsVK.cpp">
+      <Filter>GraphicsDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsDevice\ShaderConstants.cpp">
+      <Filter>GraphicsDevice</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Time.cpp">
+      <Filter>System</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -161,12 +182,27 @@
     <ClInclude Include="Rendering\ResourceContext.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="ShaderUtils\SPIRV-reflect\spirv_reflect.h">
+      <Filter>ShaderUtils\SPIRV-reflect</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsDevice\Vulkan\UBOsVK.h">
+      <Filter>GraphicsDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsDevice\ShaderConstants.h">
+      <Filter>GraphicsDevice</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Time.h">
+      <Filter>System</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Triangle.vert">
       <Filter>Resources\Shaders</Filter>
     </None>
     <None Include="Resources\Shaders\Triangle.frag">
+      <Filter>Resources\Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\Triangle3D.vert">
       <Filter>Resources\Shaders</Filter>
     </None>
   </ItemGroup>

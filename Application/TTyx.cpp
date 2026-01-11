@@ -6,6 +6,7 @@
 #include "..\Scene\Scene.h"
 #include "..\Rendering\Renderer.h"
 #include "..\Testing\Testing.h"
+#include "..\System\Time.h"
 
 #include "TTyx.h"
 
@@ -54,6 +55,7 @@ void TTyx::Startup(HINSTANCE Instance, int CmdShow)
     CWindow::SetCurrentViewWnd(m_Wnd.GetWnd());
     m_Renderer.Initialize();
     m_Scene.initialize(&m_Renderer);
+    Time::Initialize();
  //   Testing::RunTests();
 }
 
@@ -66,8 +68,10 @@ void TTyx::Shutdown()
 //--------------------------------------------------------------------------------------
 void TTyx::MainLoop()
 {
+    Time::Tick();
+    float frameTime = Time::GetDeltaTimeSec();
     m_Scene.draw(&m_Renderer);
-    m_Renderer.Execute();
+    m_Renderer.Execute(frameTime);
     m_FrameCounter++;
 }
 

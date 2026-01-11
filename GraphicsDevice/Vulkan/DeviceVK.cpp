@@ -102,6 +102,18 @@ const VkDynamicState DeviceVK::scm_DynamicStates[] =
 
 const uint32_t DeviceVK::scm_NumDynamicStates = sizeof(scm_DynamicStates) / sizeof(VkDynamicState);
 
+static void* SpvReflectionAllocate(size_t count, uint32_t size)
+{
+    return CMemoryManager::GetAllocator().Alloc(count * size);
+}
+
+static void SpvReflectionFree(void* p)
+{
+    if (p == nullptr)
+        return;
+    CMemoryManager::GetAllocator().Free(p);
+}
+
 void DeviceVK::CreateInstance()
 {
     VkInstanceCreateInfo createInfo{};
@@ -113,6 +125,7 @@ void DeviceVK::CreateInstance()
     createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&m_DebugUtilsMessengerCreateInfoEXT;  // so that validation messages can be intercepted by the callback
     VkResult result = vkCreateInstance(&createInfo, &m_AllocationCallbacks, &m_Instance);
     Assert(result == VK_SUCCESS);
+    SpvReflectSetCustomMemoryManagement(SpvReflectionAllocate, SpvReflectionFree);
 }
 
 void DeviceVK::CreateSurfaceKHR()
@@ -378,26 +391,9 @@ uint32_t DeviceVK::GetMemoryTypeIndex(uint32_t typeFilter, VkMemoryPropertyFlags
 
 void DeviceVK::CreateStagingBuffer()
 {
-    VkDeviceSize bufferSize = scm_StagingBufferSize;
-    VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = bufferSize;
-    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    VkResult res = vkCreateBuffer(m_LogicalDevice, &bufferInfo, &m_AllocationCallbacks, &m_StagingBuffer);
-    Assert(res == VK_SUCCESS);
     m_StagingRingBuffer.Initialize(scm_StagingBufferSize);
+    CreateBuffer(m_StagingBuffer, m_StagingBufferMemory, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, scm_StagingBufferSize);
 
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(m_LogicalDevice, m_StagingBuffer, &memRequirements);
-    VkMemoryAllocateInfo memoryAllocInfo{};
-    memoryAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    memoryAllocInfo.allocationSize = memRequirements.size;
-    memoryAllocInfo.memoryTypeIndex = GetMemoryTypeIndex(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-    res = vkAllocateMemory(m_LogicalDevice, &memoryAllocInfo, &m_AllocationCallbacks, &m_StagingBufferMemory);
-    Assert(res == VK_SUCCESS);
-    vkBindBufferMemory(m_LogicalDevice, m_StagingBuffer, m_StagingBufferMemory, 0);
     for (uint32_t i = 0; i < scm_Frames; i++)
     {
         m_StagingBufferOffsets[i] = -1; // when -1 we skip staging ring buffer update in 'BeginFrame'
@@ -415,8 +411,14 @@ void DeviceVK::DisposeStagingBuffer()
     CMemoryManager::GetAllocator().Free(m_pStagingBufferCopies);
 }
 
-void DeviceVK::CreateLocalBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, const VkBufferCreateInfo& bufferInfo, uint32_t size, const void* pData)
-{
+void DeviceVK::CreateBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, uint32_t size)
+{    
+    // create the buffer and its memory 
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     VkResult res = vkCreateBuffer(m_LogicalDevice, &bufferInfo, &m_AllocationCallbacks, &buffer);
     Assert(res == VK_SUCCESS);
     VkMemoryRequirements memRequirements;
@@ -424,21 +426,23 @@ void DeviceVK::CreateLocalBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory,
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = GetMemoryTypeIndex(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT); // GPU memory
+    allocInfo.memoryTypeIndex = GetMemoryTypeIndex(memRequirements.memoryTypeBits, properties);
     res = vkAllocateMemory(m_LogicalDevice, &allocInfo, &m_AllocationCallbacks, &bufferMemory);
     Assert(res == VK_SUCCESS);
     vkBindBufferMemory(m_LogicalDevice, buffer, bufferMemory, 0);
+}
 
-    uint32_t mapOffset = m_StagingRingBuffer.Allocate(size, m_CurrentStagingOffset);
-
+void DeviceVK::UpdateBuffer(const VkBuffer& buffer, uint32_t offset, int32_t size, const void* pData)
+{
+    uint32_t mapOffset = m_StagingRingBuffer.Allocate(ALIGN(size, 4), m_CurrentStagingOffset);
     void* data;
-    vkMapMemory(m_LogicalDevice, m_StagingBufferMemory, mapOffset, bufferInfo.size, 0, &data);
-    memcpy(data, pData, (size_t)bufferInfo.size);
+    vkMapMemory(m_LogicalDevice, m_StagingBufferMemory, mapOffset, size, 0, &data);
+    memcpy(data, pData, (size_t)size);
     vkUnmapMemory(m_LogicalDevice, m_StagingBufferMemory);
 
     Assert(m_StagingBufferCopyCount < kStagingBufferCopiesBlock);
     m_pStagingBufferCopies[m_StagingBufferCopyCount].m_DstBuffer = buffer;
-    m_pStagingBufferCopies[m_StagingBufferCopyCount].m_BufferCopy.dstOffset = 0;
+    m_pStagingBufferCopies[m_StagingBufferCopyCount].m_BufferCopy.dstOffset = offset;
     m_pStagingBufferCopies[m_StagingBufferCopyCount].m_BufferCopy.size = size;
     m_pStagingBufferCopies[m_StagingBufferCopyCount].m_BufferCopy.srcOffset = mapOffset;
     m_StagingBufferCopyCount++;
@@ -499,6 +503,20 @@ void DeviceVK::CreateLogicalDevice()
     vkGetDeviceQueue(m_LogicalDevice, m_QueueFamilyIndex, 0, &m_GraphicsQueue);
 }
 
+void DeviceVK::CreateDescriptorPool()
+{
+    VkDescriptorPoolSize poolSize{};
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize.descriptorCount = static_cast<uint32_t>(scm_Frames * scm_MaxDescriptors);
+
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.maxSets = static_cast<uint32_t>(scm_Frames * scm_MaxDescriptorSets);
+    vkCreateDescriptorPool(m_LogicalDevice, &poolInfo, &m_AllocationCallbacks, &m_DescriptorPool);
+}
+
 void DeviceVK::Initialize()
 {   
     InitializeAllocationCallbacks();
@@ -552,7 +570,8 @@ void DeviceVK::Initialize()
         Assert(res == VK_SUCCESS);
     }
     m_DeviceFrameCount = 0;
-    CreateStagingBuffer();
+    CreateStagingBuffer();    
+    CreateDescriptorPool();
 }
 
 void DeviceVK::DisposeSwapChain()
@@ -585,6 +604,7 @@ void DeviceVK::Dispose()
     {
         vkDestroyRenderPass(m_LogicalDevice, m_pRenderPasses[i], &m_AllocationCallbacks);
     }
+    vkDestroyDescriptorPool(m_LogicalDevice, m_DescriptorPool, &m_AllocationCallbacks);
            
     vkDestroyDebugUtilsMessengerEXT(m_Instance, m_DebugMessenger, &m_AllocationCallbacks);
     vkDestroyDevice(m_LogicalDevice, &m_AllocationCallbacks);
@@ -605,7 +625,7 @@ void DeviceVK::Dispose()
     CMemoryManager::GetAllocator().Free(m_pRenderPasses);   
 }
 
-void DeviceVK::CreateGraphicsPipeline(const DeviceState* pDeviceState, VkPipeline* pPipeline, const ResourceContext* pResourceContext)
+void DeviceVK::CreateGraphicsPipeline(const DeviceState* pDeviceState, VkPipeline* pPipeline, VkPipelineLayout* pLayout, const ResourceContext* pResourceContext)
 {
     VkPipelineShaderStageCreateInfo shaderStages[] {{}, {}};
     shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -663,11 +683,23 @@ void DeviceVK::CreateGraphicsPipeline(const DeviceState* pDeviceState, VkPipelin
     colorBlending.attachmentCount = 1;
     colorBlending.pAttachments = &colorBlendAttachment;
 
+    VkDescriptorSetLayout descriptorSetLayout[2];
+    uint32_t layoutCount = 0;
+    for (uint32_t stage = ShaderStageVertex; stage <= ShaderStageFragment; stage++)
+    {
+        ShaderStageType stageType = static_cast<ShaderStageType>(stage);
+        if (pResourceContext->m_Shaders.IsDescriptorSetLayoutValid(pDeviceState->GetShader(stageType), stageType))
+        {
+            descriptorSetLayout[layoutCount] = pResourceContext->m_Shaders.GetDescriptorSetLayout(pDeviceState->GetShader(stageType), stageType);
+            layoutCount++;
+        }
+    }
     VkPipelineLayoutCreateInfo pipelineLayoutInfo {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-       
-    VkPipelineLayout pipelineLayout;
-    VkResult res = vkCreatePipelineLayout(m_LogicalDevice, &pipelineLayoutInfo, &m_AllocationCallbacks, &pipelineLayout);
+    pipelineLayoutInfo.setLayoutCount = layoutCount;
+    pipelineLayoutInfo.pSetLayouts = descriptorSetLayout;
+    
+    VkResult res = vkCreatePipelineLayout(m_LogicalDevice, &pipelineLayoutInfo, &m_AllocationCallbacks, pLayout);
     Assert(res == VK_SUCCESS);
        
     VkGraphicsPipelineCreateInfo pipelineInfo{};
@@ -682,7 +714,7 @@ void DeviceVK::CreateGraphicsPipeline(const DeviceState* pDeviceState, VkPipelin
     pipelineInfo.pDepthStencilState = nullptr; // Optional
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDynamicState = &dynamicState;
-    pipelineInfo.layout = pipelineLayout;
+    pipelineInfo.layout = *pLayout;
     pipelineInfo.renderPass = m_pRenderPasses[m_CurrentRenderPass];
     pipelineInfo.subpass = 0;
 
@@ -720,7 +752,7 @@ uint32_t DeviceVK::BeginFrame()
 
     if (m_StagingBufferCopyCount > 0)
     {
-        // Perform all the host to local memory buffer copies
+        // Perform all the queued up host to local memory buffer copies
         for (uint32_t i = 0; i < m_StagingBufferCopyCount; i++)
         {
             vkCmdCopyBuffer(m_CommandBuffer[m_CurrFrame], m_StagingBuffer, m_pStagingBufferCopies[i].m_DstBuffer, 1, &m_pStagingBufferCopies[i].m_BufferCopy);
@@ -728,6 +760,7 @@ uint32_t DeviceVK::BeginFrame()
         m_StagingBufferCopyCount = 0;
         m_StagingBufferOffsets[m_CurrFrame] = m_CurrentStagingOffset;   // when the fence for current frame gets set we will mark ring buffer memory up to this point as available
     }
+
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = m_pRenderPasses[m_CurrentRenderPass];
@@ -799,6 +832,11 @@ void DeviceVK::EndFrame(uint32_t imageIndex)
 void DeviceVK::BindPipeline(VkPipeline pipeline)
 {    
     vkCmdBindPipeline(m_CommandBuffer[m_CurrFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+}
+
+void DeviceVK::BindDescriptorSets(VkPipelineLayout layout, VkDescriptorSet* pDescriptorSets, uint32_t numDescriptors)
+{
+    vkCmdBindDescriptorSets(m_CommandBuffer[m_CurrFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, numDescriptors, pDescriptorSets, 0, nullptr);
 }
 
 void DeviceVK::DrawVertexBuffer(VkBuffer buffer, VkDeviceSize offset, uint32_t numVerts)
@@ -907,15 +945,12 @@ void DeviceVK::DestroyShaderModule(VkShaderModule shaderModule)
 }
 
 void DeviceVK::CreateVertexBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, uint32_t size, const void* pData)
-{
-    size = ALIGN(size, 4);  // ringbuffer allocations should be 4 byte aligned for this
-    // create the buffer and its memory 
-    VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = size;
-    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    CreateLocalBuffer(buffer, bufferMemory, bufferInfo, size, pData);   
+{       
+    CreateBuffer(buffer, bufferMemory, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, size);
+    if (pData != nullptr)
+    {
+        UpdateBuffer(buffer, 0, size, pData);
+    }
 }
 
 void DeviceVK::DestroyVertexBuffer(VertexBuffersVK::VertexBuffer* pBuffer)
@@ -926,20 +961,120 @@ void DeviceVK::DestroyVertexBuffer(VertexBuffersVK::VertexBuffer* pBuffer)
 
 void DeviceVK::CreateIndexBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, uint32_t size, const void* pData)
 {
-    size = ALIGN(size, 4);  // ringbuffer allocations should be 4 byte aligned for this
-    // create the buffer and its memory 
-    VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = size;
-    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    CreateLocalBuffer(buffer, bufferMemory, bufferInfo, size, pData);
+    CreateBuffer(buffer, bufferMemory, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, size);
+    if (pData != nullptr)
+    {
+        UpdateBuffer(buffer, 0, size, pData);
+    }
 }
 
 void DeviceVK::DestroyIndexBuffer(IndexBuffersVK::IndexBuffer* pBuffer)
 {
     vkDestroyBuffer(m_LogicalDevice, pBuffer->m_IndexBuffer, &m_AllocationCallbacks);
     vkFreeMemory(m_LogicalDevice, pBuffer->m_BufferMemory, &m_AllocationCallbacks);
+}
+
+void DeviceVK::CreateConstantBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, uint32_t size)
+{
+    CreateBuffer(buffer, bufferMemory, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, size);
+}
+
+void DeviceVK::DestroyBuffer(VkBuffer buffer, VkDeviceMemory  bufferMemory)
+{
+    vkDestroyBuffer(m_LogicalDevice, buffer, &m_AllocationCallbacks);
+    vkFreeMemory(m_LogicalDevice, bufferMemory, &m_AllocationCallbacks);
+}
+
+bool DeviceVK::CreateDescriptorSetLayout(const SpvReflectShaderModule& module, VkDescriptorSetLayout& descriptorSetLayout, VkDescriptorSet& descriptorSet, const ShaderConstants::BufferInfo* bufferInfos, uint32_t bufferCount)
+{    
+    if (module.descriptor_set_count == 0)
+        return false;
+    Assert(module.descriptor_set_count == 1);
+    const SpvReflectDescriptorSet& spvDescriptorSet = module.descriptor_sets[0];
+    VkDescriptorSetLayoutBinding layoutBindings[16]{}; // max 16 bindings
+    VkWriteDescriptorSet descriptorWrite[16]{};
+    VkDescriptorBufferInfo descriptorBufferInfos[16]{};
+    Assert(spvDescriptorSet.binding_count < 16);
+    VkShaderStageFlags shaderStageFlags {};
+
+    // TODO refactor to combine in single descriptor set
+    if (module.shader_stage & SPV_REFLECT_SHADER_STAGE_VERTEX_BIT)
+        shaderStageFlags |= VK_SHADER_STAGE_VERTEX_BIT;
+    else if (module.shader_stage & SPV_REFLECT_SHADER_STAGE_FRAGMENT_BIT)
+        shaderStageFlags |= VK_SHADER_STAGE_FRAGMENT_BIT;
+    else
+        Assert(0);
+
+    for (uint32_t i = 0; i < spvDescriptorSet.binding_count; i++)
+    {
+        SpvReflectDescriptorBinding* pDescriptorBinding = spvDescriptorSet.bindings[i];
+        switch (pDescriptorBinding->descriptor_type)
+        {
+            case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+                layoutBindings[i].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                layoutBindings[i].binding = pDescriptorBinding->binding;
+                Assert(pDescriptorBinding->count == 1);
+                layoutBindings[i].descriptorCount = pDescriptorBinding->count;
+                layoutBindings[i].stageFlags = shaderStageFlags;
+
+                descriptorWrite[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                descriptorWrite[i].dstBinding = pDescriptorBinding->binding;;
+                descriptorWrite[i].dstArrayElement = 0;
+                descriptorWrite[i].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                descriptorWrite[i].descriptorCount = pDescriptorBinding->count;
+                for (uint32_t j = 0; j < bufferCount; j++)
+                {
+                    if (!strcmp(bufferInfos[j].m_Name, pDescriptorBinding->name))
+                    {
+                        descriptorBufferInfos[i].buffer = bufferInfos[j].m_buffer;
+                        descriptorBufferInfos[i].range = bufferInfos[j].m_Size;
+                    }
+                }
+                descriptorBufferInfos[i].offset = 0;
+                descriptorWrite[i].pBufferInfo = &descriptorBufferInfos[i];
+                descriptorWrite[i].pImageInfo = nullptr; // Optional
+                descriptorWrite[i].pTexelBufferView = nullptr; // Optional
+                break;
+            default:
+                Assert(0);
+                break;
+        }
+    }
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = spvDescriptorSet.binding_count;
+    layoutInfo.pBindings = layoutBindings;
+    VkResult res = vkCreateDescriptorSetLayout(m_LogicalDevice, &layoutInfo, &m_AllocationCallbacks, &descriptorSetLayout); 
+    Assert(res == VK_SUCCESS);
+
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = m_DescriptorPool;
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = &descriptorSetLayout;
+    vkAllocateDescriptorSets(m_LogicalDevice, &allocInfo, &descriptorSet);
+
+    // Update the descriptor set
+    for (uint32_t i = 0; i < spvDescriptorSet.binding_count; i++)
+    {
+        SpvReflectDescriptorBinding* pDescriptorBinding = spvDescriptorSet.bindings[i];
+        switch (pDescriptorBinding->descriptor_type)
+        {
+            case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+                descriptorWrite[i].dstSet = descriptorSet;                
+                break;
+            default:
+                Assert(0);
+                break;
+        }
+    }   
+    vkUpdateDescriptorSets(m_LogicalDevice, spvDescriptorSet.binding_count, descriptorWrite, 0, nullptr);
+    return true;
+}
+
+void DeviceVK::DestroyDescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout)
+{
+    vkDestroyDescriptorSetLayout(m_LogicalDevice, descriptorSetLayout, &m_AllocationCallbacks);
 }
 
 void DeviceVK::SetDeviceState(const DeviceState* pDeviceState)

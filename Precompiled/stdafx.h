@@ -24,8 +24,10 @@
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
 #include <new>
-//#include <DirectXMath.h>
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_LEFT_HANDED
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_win32.h>
 

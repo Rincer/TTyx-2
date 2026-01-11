@@ -3,7 +3,9 @@
 
 #include "VertexBuffersVK.h"
 #include "IndexBuffersVK.h"
-#include "..\Memory\RingBuffer.h"
+#include "../Memory/RingBuffer.h"
+#include "../../ShaderUtils/SPIRV-reflect/spirv_reflect.h"
+#include "../ShaderConstants.h"
 
 class DeviceState;
 class ShadersVK;
@@ -14,10 +16,11 @@ class DeviceVK
     public:
         void Initialize();
         void Dispose();
-        void CreateGraphicsPipeline(const DeviceState* pDeviceState, VkPipeline* pPipeline, const ResourceContext* pResourceContext);
+        void CreateGraphicsPipeline(const DeviceState* pDeviceState, VkPipeline* pPipeline, VkPipelineLayout* pLayout, const ResourceContext* pResourceContext);
         uint32_t BeginFrame();
         void EndFrame(uint32_t imageIndex);
         void BindPipeline(VkPipeline pipeline);
+        void BindDescriptorSets(VkPipelineLayout layout, VkDescriptorSet* pDescriptorSets, uint32_t numDescriptors);
         void DrawVertexBuffer(const ResourceContext* pResourceContext, uint32_t vertexBuffer, uint32_t indexBuffer);        
         void WaitTillIdle();
 
@@ -38,13 +41,21 @@ class DeviceVK
         void DestroyVertexBuffer(VertexBuffersVK::VertexBuffer* pBuffer);
         void CreateIndexBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, uint32_t size, const void* pData);
         void DestroyIndexBuffer(IndexBuffersVK::IndexBuffer* pBuffer);
+        void CreateConstantBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, uint32_t size);
+        void DestroyBuffer(VkBuffer buffer, VkDeviceMemory  bufferMemory);
+        void UpdateBuffer(const VkBuffer& buffer, uint32_t offset, int32_t size, const void* pData);
+        bool CreateDescriptorSetLayout(const SpvReflectShaderModule& module, VkDescriptorSetLayout& descriptorSetLayout, VkDescriptorSet& descriptorSet, const ShaderConstants::BufferInfo* bufferInfos, uint32_t bufferCount);
+        void DestroyDescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout);
+
         void SetDeviceState(const DeviceState* pDeviceState);
         
         static PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
         static PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
 
     private:
-        static const uint32_t scm_Frames = 2; // concurrent frames in flight
+        static const uint32_t scm_Frames = 2;       // concurrent frames in flight
+        static const uint32_t scm_MaxDescriptorSets = 16; 
+        static const uint32_t scm_MaxDescriptors = 16;
         static void* vkAllocationFunction(void* pUserData, size_t size, size_t alignment, VkSystemAllocationScope allocationScope);
         static void* vkReallocationFunction(void* pUserData, void* pOriginal, size_t size, size_t alignment, VkSystemAllocationScope allocationScope);
         static void vkFreeFunction(void* pUserData, void* pMemory);
@@ -76,9 +87,10 @@ class DeviceVK
         uint32_t GetMemoryTypeIndex(uint32_t typeFilter, VkMemoryPropertyFlags properties);
         void CreateStagingBuffer();
         void DisposeStagingBuffer();
-        void CreateLocalBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, const VkBufferCreateInfo& bufferInfo, uint32_t size, const void* pData);
+        void CreateBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, uint32_t size);
         void DrawVertexBuffer(VkBuffer buffer, VkDeviceSize offset, uint32_t numVerts);
         void DrawIndexedVertexBuffer(VkBuffer vertexBuffer, VkDeviceSize vertexOffset, VkBuffer indexBuffer, VkDeviceSize indexOffset, uint32_t numIndices);
+        void CreateDescriptorPool();
 
         static const char* scm_EnabledLayers[];
         static const uint32_t scm_NumLayers;
@@ -148,6 +160,8 @@ class DeviceVK
         static const uint32_t kStagingBufferCopiesBlock = 32;
         StagingBufferCopy* m_pStagingBufferCopies;        
         uint32_t m_StagingBufferCopyCount;
+
+        VkDescriptorPool m_DescriptorPool;
 };
 
 #endif

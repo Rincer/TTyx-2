@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -141,10 +141,12 @@
     <ClCompile Include="Application\TTyx.cpp" />
     <ClCompile Include="Diagnostics\Debugging.cpp" />
     <ClCompile Include="GraphicsDevice\DeviceState.cpp" />
+    <ClCompile Include="GraphicsDevice\ShaderConstants.cpp" />
     <ClCompile Include="GraphicsDevice\Vulkan\DeviceVK.cpp" />
     <ClCompile Include="GraphicsDevice\Vulkan\GraphicsPipelinesVK.cpp" />
     <ClCompile Include="GraphicsDevice\Vulkan\IndexBuffersVK.cpp" />
     <ClCompile Include="GraphicsDevice\Vulkan\ShadersVK.cpp" />
+    <ClCompile Include="GraphicsDevice\Vulkan\UBOsVK.cpp" />
     <ClCompile Include="GraphicsDevice\Vulkan\VertexBuffersVK.cpp" />
     <ClCompile Include="Memory\HeapAllocator.cpp" />
     <ClCompile Include="Memory\MemoryManager.cpp" />
@@ -156,6 +158,8 @@
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\ResourceContext.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
+    <ClCompile Include="ShaderUtils\SPIRV-reflect\spirv_reflect.cpp" />
+    <ClCompile Include="System\Time.cpp" />
     <ClCompile Include="Testing\Testing.cpp" />
     <ClCompile Include="Utilities\Hash.cpp" />
     <ClCompile Include="Windows\Window.cpp" />
@@ -164,10 +168,12 @@
     <ClInclude Include="Application\TTyx.h" />
     <ClInclude Include="Diagnostics\Debugging.h" />
     <ClInclude Include="GraphicsDevice\DeviceState.h" />
+    <ClInclude Include="GraphicsDevice\ShaderConstants.h" />
     <ClInclude Include="GraphicsDevice\Vulkan\DeviceVK.h" />
     <ClInclude Include="GraphicsDevice\Vulkan\GraphicsPipelinesVK.h" />
     <ClInclude Include="GraphicsDevice\Vulkan\IndexBuffersVK.h" />
     <ClInclude Include="GraphicsDevice\Vulkan\ShadersVK.h" />
+    <ClInclude Include="GraphicsDevice\Vulkan\UBOsVK.h" />
     <ClInclude Include="GraphicsDevice\Vulkan\VertexBuffersVK.h" />
     <ClInclude Include="Memory\Allocator.h" />
     <ClInclude Include="Memory\HeapAllocator.h" />
@@ -177,6 +183,8 @@
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\ResourceContext.h" />
     <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="ShaderUtils\SPIRV-reflect\spirv_reflect.h" />
+    <ClInclude Include="System\Time.h" />
     <ClInclude Include="Testing\Testing.h" />
     <ClInclude Include="Utilities\Functions.h" />
     <ClInclude Include="Utilities\Hash.h" />
@@ -186,6 +194,7 @@
   <ItemGroup>
     <None Include="Resources\Shaders\Triangle.frag" />
     <None Include="Resources\Shaders\Triangle.vert" />
+    <None Include="Resources\Shaders\Triangle3D.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

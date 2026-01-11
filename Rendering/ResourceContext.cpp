@@ -9,7 +9,7 @@ void ResourceContext::Initialize()
 	m_Shaders.Initialize();
 	m_VertexBuffers.Initialize();
 	m_IndexBuffers.Initialize();
-
+	m_ShaderConstants.Initialize();
 }
 
 void ResourceContext::Dispose(DeviceVK* pDevice)
@@ -17,4 +17,5 @@ void ResourceContext::Dispose(DeviceVK* pDevice)
 	m_Shaders.Dispose(pDevice);
 	m_VertexBuffers.Dispose(pDevice);
 	m_IndexBuffers.Dispose(pDevice);
+	m_ShaderConstants.Dispose(pDevice);
 }

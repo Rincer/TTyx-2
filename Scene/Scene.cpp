@@ -39,10 +39,14 @@ void Scene::initialize(Renderer* pRenderer)
     m_RenderElement = pRenderer->CreateRenderElement("Resources\\Shaders\\triangle_vert.spv", "Resources\\Shaders\\triangle_frag.spv", vertexInputState, sizeof(vertices), vertices, 3);
     m_RenderElement2 = pRenderer->CreateIndexedRenderElement("Resources\\Shaders\\triangle_vert.spv", "Resources\\Shaders\\triangle_frag.spv", vertexInputState, sizeof(vertices2), vertices2, 4,
         sizeof(indices), indices, 6);
+    m_RenderElement3 = pRenderer->CreateIndexedRenderElement("Resources\\Shaders\\triangle3d_vert.spv", "Resources\\Shaders\\triangle_frag.spv", vertexInputState, sizeof(vertices2), vertices2, 4,
+        sizeof(indices), indices, 6);
+
 }
 
 void Scene::draw(Renderer* pRenderer)
 {
-    pRenderer->DrawRenderElement(m_RenderElement2);
-    pRenderer->DrawRenderElement(m_RenderElement);
+    //pRenderer->DrawRenderElement(m_RenderElement2);
+    //pRenderer->DrawRenderElement(m_RenderElement);
+    pRenderer->DrawRenderElement(m_RenderElement3);
 }
