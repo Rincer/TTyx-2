@@ -13,6 +13,7 @@ class Scene
         uint32_t m_RenderElement;
         uint32_t m_RenderElement2;
         uint32_t m_RenderElement3;
+        uint32_t m_RenderElement4;
 };
 
 #endif

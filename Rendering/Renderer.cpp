@@ -97,6 +97,10 @@ void Renderer::Execute(float frameTime)
     m_ResourceContext.m_ShaderConstants.UpdateConstant(m_pGraphicsDevice, "ubo", "view", &ubo.view, sizeof(ubo.view));
     m_ResourceContext.m_ShaderConstants.UpdateConstant(m_pGraphicsDevice, "ubo", "proj", &ubo.proj, sizeof(ubo.proj));
 
+    m_ResourceContext.m_ShaderConstants.UpdateConstant(m_pGraphicsDevice, "modelUbo", "model", &ubo.model, sizeof(ubo.model));
+    m_ResourceContext.m_ShaderConstants.UpdateConstant(m_pGraphicsDevice, "viewUbo", "view", &ubo.view, sizeof(ubo.view));
+    m_ResourceContext.m_ShaderConstants.UpdateConstant(m_pGraphicsDevice, "projUbo", "proj", &ubo.proj, sizeof(ubo.proj));
+
     uint32_t imageIndex = m_pGraphicsDevice->BeginFrame();
     if (imageIndex != -1)
     {

@@ -195,6 +195,7 @@
     <None Include="Resources\Shaders\Triangle.frag" />
     <None Include="Resources\Shaders\Triangle.vert" />
     <None Include="Resources\Shaders\Triangle3D.vert" />
+    <None Include="Resources\Shaders\Triangle3DMultiBuffer.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

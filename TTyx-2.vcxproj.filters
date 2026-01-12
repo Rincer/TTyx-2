@@ -205,5 +205,8 @@
     <None Include="Resources\Shaders\Triangle3D.vert">
       <Filter>Resources\Shaders</Filter>
     </None>
+    <None Include="Resources\Shaders\Triangle3DMultiBuffer.vert">
+      <Filter>Resources\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
